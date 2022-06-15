@@ -9,6 +9,12 @@ Example folders and their contents:
 A simple Terraform configuration that uses each of possible main blocks Terraform blocks that demonstrate how each block type might be used.
 
 Creates a new VPC and spins up an EC2 into it.
+
+## optional-infra
+
+A configuration containing a custom module that can be turned on and turned off by updating the `use_optional` variable in optional.auto.tfvars.
+
+When the module is on, an S3 bucket will be created. When it is off, the S3 bucket will not be created and will need to be destroyed manually if it contains data values.
 ## state 
 
 Demonstrates how to store Terraform state using the remote infrastructure that is provided in AWS. 
