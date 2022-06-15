@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# A hook script which generates terraform documentation using terraform docs
+# https://github.com/terraform-docs/terraform-docs 
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+
+DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
+terraform-docs markdown table $DIR/../../basics > $DIR/../../basics/module_docs.md

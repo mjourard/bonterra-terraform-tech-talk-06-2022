@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: S3 and Dyanmo Table for saving terraform state
+
+Parameters:
+  Project:
+    Type: String
+    Description: A short description of the project to save the Terraform state for.
+  Environment:
+    Type: String
+    Description: The name of the environment who's state will be saved. E.g. dev, prod
+
+Resources:
+  TerraformStateS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        !Join [
+          "-",
+          ["tf-states", !Ref Project, !Ref Environment, !Ref "AWS::AccountId"],
+        ]
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+
+  TerraformStateS3BucketBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref TerraformStateS3Bucket
+      PolicyDocument:
+        Statement:
+          - Sid: DenyDeletingTerraformStateFiles
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:DeleteObject"
+            Resource: !Sub "arn:aws:s3:::${TerraformStateS3Bucket}/*"
+
+  TerraformStateLockDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        !Join [
+          "-",
+          [
+            "tf-state-locks",
+            !Ref Project,
+            !Ref Environment,
+            !Ref "AWS::AccountId",
+          ],
+        ]
+      AttributeDefinitions:
+        - AttributeName: LockID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: LockID
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      SSESpecification:
+        SSEEnabled: true
+
+Outputs:
+  StatesBucket:
+    Description: Terraform States Bucket
+    Value: !Ref TerraformStateS3Bucket
+    Export:
+      Name: !Join [":", [!Ref "AWS::StackName", !Ref Project, States-Bucket]]
+
+  StateLocksDynamo:
+    Description: Terraform State Locks Dynamo Table Name
+    Value: !Ref TerraformStateLockDynamoDBTable
+    Export:
+      Name:
+        !Join [":", [!Ref "AWS::StackName", !Ref Project, State-Locks-Dynamo]]
