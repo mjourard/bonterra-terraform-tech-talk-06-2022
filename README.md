@@ -4,6 +4,11 @@ An instructional repo of the different examples that were gone over during my Te
 
 Example folders and their contents:
 
+## basics
+
+A simple Terraform configuration that uses each of possible main blocks Terraform blocks that demonstrate how each block type might be used.
+
+Creates a new VPC and spins up an EC2 into it.
 ## state 
 
 Demonstrates how to store Terraform state using the remote infrastructure that is provided in AWS. 
